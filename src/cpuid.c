@@ -15,9 +15,8 @@
 #define OP_FAMILY       1
 #define OP_CACHE        2
 #define OP_SERIAL       3
-#define OP_BRAND_0      0x80000002
-#define OP_BRAND_1      0x80000002
-#define OP_BRAND_2      0x80000002
+#define OP_BRAND_MIN    0x80000002
+#define OP_BRAND_MAX    0x80000004
 
 #define VENDOR_SIZE     12
 #define BRAND_SIZE      48
@@ -69,21 +68,14 @@ cpuid_t cpuid()
     id->vendor[VENDOR_SIZE] = 0;
 
     // brand
-    asm_cpuid(dest, OP_BRAND_0);
-    memcpy(id->brand, &(dest[0]), 4);
-    memcpy(id->brand + 4, &(dest[1]), 4);
-    memcpy(id->brand + 8, &(dest[2]), 4);
-    memcpy(id->brand + 12, &(dest[3]), 4);
-    asm_cpuid(dest, OP_BRAND_1);
-    memcpy(id->brand, &(dest[0]), 4);
-    memcpy(id->brand + 4, &(dest[1]), 4);
-    memcpy(id->brand + 8, &(dest[2]), 4);
-    memcpy(id->brand + 12, &(dest[3]), 4);
-    asm_cpuid(dest, OP_BRAND_2);
-    memcpy(id->brand, &(dest[0]), 4);
-    memcpy(id->brand + 4, &(dest[1]), 4);
-    memcpy(id->brand + 8, &(dest[2]), 4);
-    memcpy(id->brand + 12, &(dest[3]), 4);
+    for (size_t i = 0; i < OP_BRAND_MAX - OP_BRAND_MIN; i++)
+    {
+        asm_cpuid(dest, OP_BRAND_MIN + i);
+        memcpy(id->brand + i * 16, &(dest[0]), 4);
+        memcpy(id->brand + i * 16 + 4, &(dest[1]), 4);
+        memcpy(id->brand + i * 16 + 8, &(dest[2]), 4);
+        memcpy(id->brand + i * 16 + 12, &(dest[3]), 4);
+    }
     id->brand[BRAND_SIZE] = 0;
 
     // serial
